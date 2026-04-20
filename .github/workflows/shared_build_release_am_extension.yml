@@ -48,8 +48,8 @@ jobs:
           cc: ${{ matrix.cc }}
           cxx: ${{ matrix.cxx }}
           ambuild-ref: 'master'
-          mm-ref: '1.12-dev'
-          sm-ref: 'master'
+          mm-ref: '1.11-dev'
+          sm-ref: '1.12-dev'
           hl2sdk-manifests-ref: 'master'
           sdks: ${{ inputs.sdks }}
           configure-path: '../sm-ext-common/configure.py'
