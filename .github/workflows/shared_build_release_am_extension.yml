@@ -11,6 +11,11 @@ on:
         description: "Artifact path to download from previous jobs"
         default: ""
         type: string
+      submodules:
+        description: "Whether to checkout submodules (true, false, or recursive)"
+        default: "recursive"
+        type: string
+
 
 jobs:
   build:
@@ -32,7 +37,7 @@ jobs:
     steps:
       - uses: actions/checkout@v7
         with:
-          submodules: true
+          submodules: ${{ inputs.submodules }}
 
       - name: Download artifact
         uses: actions/download-artifact@v8
