@@ -68,7 +68,7 @@ jobs:
           configure-additional-flags: '--enable-optimize --enable-auto-versioning --ext-root "../"'
 
       - name: Upload package
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: ${{ matrix.os }}-sm-${{ matrix.sm-branch }}
           path: ${{ steps.ambuild.outputs.package-path }}
