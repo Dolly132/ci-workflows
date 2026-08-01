@@ -15,6 +15,14 @@ on:
         description: "Whether to checkout submodules (true, false, or recursive)"
         default: "recursive"
         type: string
+      sm-branch:
+        description: "The SourceMod Repository branch to compile the extension against"
+        default: "master"
+        type: string
+      mm-branch:
+        description: "The MetaMod Repository branch to compile the extension against"
+        default: "1.12-dev"
+        type: string
 
 
 jobs:
@@ -53,8 +61,8 @@ jobs:
           cc: ${{ matrix.cc }}
           cxx: ${{ matrix.cxx }}
           ambuild-ref: 'master'
-          mm-ref: '1.12-dev'
-          sm-ref: 'master'
+          mm-ref: ${{ inputs.mm-branch }}
+          sm-ref: ${{ inputs.sm-branch }}
           hl2sdk-manifests-ref: 'master'
           sdks: ${{ inputs.sdks }}
           configure-path: '../sm-ext-common/configure.py'
