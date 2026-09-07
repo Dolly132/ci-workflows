@@ -29,7 +29,7 @@ jobs:
           - ubuntu-24.04
           - windows-2022
         sm-branch:
-          - 42ce2ce
+          - master
           - 1.12-dev
         include:
           - os: ubuntu-24.04
@@ -52,7 +52,7 @@ jobs:
         with:
           path: ${{ inputs.artifact-path }}
 
-      - name: Build extension
+      - name: Setup Dependencies (SourceMod / MetaMod / SDKs)
         uses: srcdslab/action-ambuild@v1
         id: ambuild
         with:
@@ -66,6 +66,14 @@ jobs:
           sdks: ${{ inputs.sdks }}
           configure-path: '../sm-ext-common/configure.py'
           configure-additional-flags: '--enable-optimize --enable-auto-versioning --ext-root "../"'
+
+      - name: Checkout target SourceMod commit
+        if: matrix.sm-branch == 'master'
+        shell: bash
+        run: |
+          cd sourcemod
+          git fetch origin 42ce2ce --depth 1
+          git checkout 42ce2ce
 
       - name: Upload package
         uses: actions/upload-artifact@v7
