@@ -51,13 +51,26 @@ jobs:
         with:
           python-version: '3.10'
 
+      - name: Install Compiler and 32-bit Dependencies
+        if: runner.os == 'Linux'
+        run: |
+          sudo dpkg --add-architecture i386
+          sudo apt-get update
+          sudo apt-get install -y \
+            clang-14 \
+            clang++-14 \
+            gcc-multilib \
+            g++-multilib \
+            lib32stdc++6 \
+            linux-libc-dev:i386
+
       - name: Download artifact
         uses: actions/download-artifact@v4
         if: inputs.artifact-path != ''
         with:
           path: ${{ inputs.artifact-path }}
 
-      # 1. Fetch SourceMod and checkout commit 42ce2ce reliably
+      # 1. Fetch SourceMod commit 42ce2ce directly
       - name: Checkout SourceMod
         shell: bash
         run: |
@@ -66,7 +79,6 @@ jobs:
           git init -b master
           git remote add origin https://github.com/alliedmodders/sourcemod.git
           if [ "${{ matrix.sm-branch }}" = "master" ]; then
-            # Fetch recent commit history from master so commit 42ce2ce is present locally
             git fetch --depth 100 origin master
             git checkout 42ce2ce
           else
