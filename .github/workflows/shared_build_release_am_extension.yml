@@ -52,7 +52,20 @@ jobs:
         with:
           path: ${{ inputs.artifact-path }}
 
-      - name: Setup Dependencies (SourceMod / MetaMod / SDKs)
+      # 1. Manually clone SourceMod and checkout the target commit before AMBuild runs
+      - name: Checkout SourceMod repository
+        shell: bash
+        run: |
+          git clone https://github.com/alliedmodders/sourcemod.git sourcemod
+          cd sourcemod
+          if [ "${{ matrix.sm-branch }}" = "master" ]; then
+            git checkout 42ce2ce
+          else
+            git checkout ${{ matrix.sm-branch }}
+          fi
+
+      # 2. Run action-ambuild with sm-ref empty so it uses our pre-cloned sourcemod folder
+      - name: Build extension
         uses: srcdslab/action-ambuild@v1
         id: ambuild
         with:
@@ -61,19 +74,11 @@ jobs:
           cxx: ${{ matrix.cxx }}
           ambuild-ref: 'master'
           mm-ref: ${{ inputs.mm-branch }}
-          sm-ref: ${{ matrix.sm-branch }}
+          sm-ref: ''
           hl2sdk-manifests-ref: 'master'
           sdks: ${{ inputs.sdks }}
           configure-path: '../sm-ext-common/configure.py'
           configure-additional-flags: '--enable-optimize --enable-auto-versioning --ext-root "../"'
-
-      - name: Checkout target SourceMod commit
-        if: matrix.sm-branch == 'master'
-        shell: bash
-        run: |
-          cd sourcemod
-          git fetch origin 42ce2ce --depth 1
-          git checkout 42ce2ce
 
       - name: Upload package
         uses: actions/upload-artifact@v7
