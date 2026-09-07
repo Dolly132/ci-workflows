@@ -1,3 +1,4 @@
+```yaml
 name: Build AlliedModders extension
 
 on:
@@ -28,9 +29,6 @@ jobs:
         os:
           - ubuntu-24.04
           - windows-2022
-        sm-branch:
-          - master
-          - 1.12-dev
         include:
           - os: ubuntu-24.04
             cc: clang-14
@@ -39,92 +37,49 @@ jobs:
             cc: msvc
             cxx: msvc
 
-    name: ${{ matrix.os }} (SM ${{ matrix.sm-branch }})
+    name: ${{ matrix.os }} (SM 42ce2ce)
     runs-on: ${{ matrix.os }}
+
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
         with:
           submodules: ${{ inputs.submodules }}
 
-      - name: Setup Python
-        uses: actions/setup-python@v5
-        with:
-          python-version: '3.10'
-
-      - name: Install Compiler and 32-bit Dependencies
-        if: runner.os == 'Linux'
+      # Explicitly clone SourceMod at the required commit
+      - name: Checkout SourceMod
+        shell: bash
+        working-directory: ..
         run: |
-          sudo dpkg --add-architecture i386
-          sudo apt-get update
-          sudo apt-get install -y \
-            clang-14 \
-            clang++-14 \
-            gcc-multilib \
-            g++-multilib \
-            lib32stdc++6 \
-            linux-libc-dev:i386
+          git clone https://github.com/alliedmodders/sourcemod.git sourcemod
+          cd sourcemod
+          git checkout 42ce2ce
 
       - name: Download artifact
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v8
         if: inputs.artifact-path != ''
         with:
           path: ${{ inputs.artifact-path }}
 
-      - name: Checkout SourceMod
-        shell: bash
-        run: |
-          mkdir sourcemod
-          cd sourcemod
-          git init -b master
-          git remote add origin https://github.com/alliedmodders/sourcemod.git
-          if [ "${{ matrix.sm-branch }}" = "master" ]; then
-            git fetch --depth 100 origin master
-            git checkout 42ce2ce
-          else
-            git fetch --depth 1 origin ${{ matrix.sm-branch }}
-            git checkout FETCH_HEAD
-          fi
-
-      - name: Checkout MetaMod
-        shell: bash
-        run: |
-          git clone --depth 1 --branch ${{ inputs.mm-branch }} https://github.com/alliedmodders/metamod-source.git mmsource
-
-      - name: Checkout and Install AMBuild
-        shell: bash
-        run: |
-          git clone --depth 1 https://github.com/alliedmodders/ambuild.git ambuild
-          python3 -m pip install ./ambuild
-
-      - name: Checkout HL2SDK Manifests
-        shell: bash
-        run: |
-          git clone --depth 1 https://github.com/alliedmodders/hl2sdk-manifests.git hl2sdk-manifests
-
-      - name: Checkout HL2SDKs
-        shell: bash
-        run: |
-          for sdk in ${{ inputs.sdks }}; do
-            echo "Cloning hl2sdk-$sdk..."
-            git clone --depth 1 --branch $sdk https://github.com/alliedmodders/hl2sdk.git hl2sdk-$sdk
-          done
-
-      - name: Build Extension
-        shell: bash
-        env:
-          CC: ${{ matrix.cc }}
-          CXX: ${{ matrix.cxx }}
-        run: |
-          mkdir build
-          cd build
-          python3 ../sm-ext-common/configure.py --enable-optimize --enable-auto-versioning --ext-root "../"
-          ambuild
+      - name: Build extension
+        uses: srcdslab/action-ambuild@v1
+        id: ambuild
+        with:
+          os: ${{ matrix.os }}
+          cc: ${{ matrix.cc }}
+          cxx: ${{ matrix.cxx }}
+          ambuild-ref: 'master'
+          mm-ref: ${{ inputs.mm-branch }}
+          sm-ref: '42ce2ce'
+          hl2sdk-manifests-ref: 'master'
+          sdks: ${{ inputs.sdks }}
+          configure-path: '../sm-ext-common/configure.py'
+          configure-additional-flags: '--enable-optimize --enable-auto-versioning --ext-root "../"'
 
       - name: Upload package
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
-          name: ${{ matrix.os }}-sm-${{ matrix.sm-branch }}
-          path: build/package
+          name: ${{ matrix.os }}-sm-42ce2ce
+          path: ${{ steps.ambuild.outputs.package-path }}
           if-no-files-found: error
           retention-days: 14
 
@@ -133,9 +88,10 @@ jobs:
     if: startsWith(github.ref, 'refs/tags/')
     needs: build
     runs-on: ubuntu-latest
+
     steps:
       - name: Download artifacts
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v8
         with:
           path: ./gh-artifacts
 
@@ -158,3 +114,4 @@ jobs:
           file: './gh-artifacts/*.tar.gz'
           tag: ${{ github.ref }}
           file_glob: true
+```
