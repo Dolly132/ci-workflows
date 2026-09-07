@@ -52,20 +52,8 @@ jobs:
         with:
           path: ${{ inputs.artifact-path }}
 
-      # 1. Manually clone SourceMod and checkout the target commit before AMBuild runs
-      - name: Checkout SourceMod repository
-        shell: bash
-        run: |
-          git clone https://github.com/alliedmodders/sourcemod.git sourcemod
-          cd sourcemod
-          if [ "${{ matrix.sm-branch }}" = "master" ]; then
-            git checkout 42ce2ce
-          else
-            git checkout ${{ matrix.sm-branch }}
-          fi
-
-      # 2. Run action-ambuild with sm-ref empty so it uses our pre-cloned sourcemod folder
-      - name: Build extension
+      # 1. Let action-ambuild download all SDKs, MetaMod, AMBuild, and SourceMod structure
+      - name: Setup environment and dependencies
         uses: srcdslab/action-ambuild@v1
         id: ambuild
         with:
@@ -74,11 +62,22 @@ jobs:
           cxx: ${{ matrix.cxx }}
           ambuild-ref: 'master'
           mm-ref: ${{ inputs.mm-branch }}
-          sm-ref: ''
+          sm-ref: 'master'
           hl2sdk-manifests-ref: 'master'
           sdks: ${{ inputs.sdks }}
           configure-path: '../sm-ext-common/configure.py'
           configure-additional-flags: '--enable-optimize --enable-auto-versioning --ext-root "../"'
+
+      # 2. Switch SourceMod to the exact target commit and force rebuild against it
+      - name: Rebuild against commit 42ce2ce
+        shell: bash
+        run: |
+          cd sourcemod
+          git fetch origin 42ce2ce --depth=1 || git fetch origin master
+          git checkout 42ce2ce
+          cd ../build
+          python3 ../sm-ext-common/configure.py --enable-optimize --enable-auto-versioning --ext-root "../"
+          ambuild
 
       - name: Upload package
         uses: actions/upload-artifact@v7
