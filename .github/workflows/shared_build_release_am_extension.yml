@@ -57,17 +57,18 @@ jobs:
         with:
           path: ${{ inputs.artifact-path }}
 
-      # 1. Fetch SourceMod directly at commit 42ce2ce (or branch if not master)
+      # 1. Fetch SourceMod and checkout commit 42ce2ce reliably
       - name: Checkout SourceMod
         shell: bash
         run: |
           mkdir sourcemod
           cd sourcemod
-          git init
+          git init -b master
           git remote add origin https://github.com/alliedmodders/sourcemod.git
           if [ "${{ matrix.sm-branch }}" = "master" ]; then
-            git fetch --depth 1 origin 42ce2ce
-            git checkout FETCH_HEAD
+            # Fetch recent commit history from master so commit 42ce2ce is present locally
+            git fetch --depth 100 origin master
+            git checkout 42ce2ce
           else
             git fetch --depth 1 origin ${{ matrix.sm-branch }}
             git checkout FETCH_HEAD
