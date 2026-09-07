@@ -70,7 +70,6 @@ jobs:
         with:
           path: ${{ inputs.artifact-path }}
 
-      # 1. Fetch SourceMod commit 42ce2ce directly
       - name: Checkout SourceMod
         shell: bash
         run: |
@@ -86,20 +85,22 @@ jobs:
             git checkout FETCH_HEAD
           fi
 
-      # 2. Checkout MetaMod Source
       - name: Checkout MetaMod
         shell: bash
         run: |
           git clone --depth 1 --branch ${{ inputs.mm-branch }} https://github.com/alliedmodders/metamod-source.git mmsource
 
-      # 3. Checkout AMBuild & Install
       - name: Checkout and Install AMBuild
         shell: bash
         run: |
           git clone --depth 1 https://github.com/alliedmodders/ambuild.git ambuild
           python3 -m pip install ./ambuild
 
-      # 4. Checkout SDKs specified in inputs
+      - name: Checkout HL2SDK Manifests
+        shell: bash
+        run: |
+          git clone --depth 1 https://github.com/alliedmodders/hl2sdk-manifests.git hl2sdk-manifests
+
       - name: Checkout HL2SDKs
         shell: bash
         run: |
@@ -108,7 +109,6 @@ jobs:
             git clone --depth 1 --branch $sdk https://github.com/alliedmodders/hl2sdk.git hl2sdk-$sdk
           done
 
-      # 5. Configure and Build directly
       - name: Build Extension
         shell: bash
         env:
