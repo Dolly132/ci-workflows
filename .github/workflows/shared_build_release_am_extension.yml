@@ -28,6 +28,9 @@ jobs:
         os:
           - ubuntu-24.04
           - windows-2022
+        sm-branch:
+          - master
+          - 1.12-dev
         include:
           - os: ubuntu-24.04
             cc: clang-14
@@ -36,22 +39,12 @@ jobs:
             cc: msvc
             cxx: msvc
 
-    name: ${{ matrix.os }} (SM 42ce2ce)
+    name: ${{ matrix.os }} (SM ${{ matrix.sm-branch }})
     runs-on: ${{ matrix.os }}
-
     steps:
       - uses: actions/checkout@v7
         with:
           submodules: ${{ inputs.submodules }}
-
-      # Explicitly clone SourceMod at the required commit
-      - name: Checkout SourceMod
-        shell: bash
-        working-directory: ..
-        run: |
-          git clone https://github.com/alliedmodders/sourcemod.git sourcemod
-          cd sourcemod
-          git checkout 42ce2ce
 
       - name: Download artifact
         uses: actions/download-artifact@v8
@@ -60,7 +53,7 @@ jobs:
           path: ${{ inputs.artifact-path }}
 
       - name: Build extension
-        uses: srcdslab/action-ambuild@v1
+        uses: Dolly132/action-ambuild@main
         id: ambuild
         with:
           os: ${{ matrix.os }}
@@ -68,7 +61,7 @@ jobs:
           cxx: ${{ matrix.cxx }}
           ambuild-ref: 'master'
           mm-ref: ${{ inputs.mm-branch }}
-          sm-ref: '42ce2ce'
+          sm-ref: 'sm-42ce2ce'
           hl2sdk-manifests-ref: 'master'
           sdks: ${{ inputs.sdks }}
           configure-path: '../sm-ext-common/configure.py'
@@ -77,7 +70,7 @@ jobs:
       - name: Upload package
         uses: actions/upload-artifact@v7
         with:
-          name: ${{ matrix.os }}-sm-42ce2ce
+          name: ${{ matrix.os }}-sm-${{ matrix.sm-branch }}
           path: ${{ steps.ambuild.outputs.package-path }}
           if-no-files-found: error
           retention-days: 14
@@ -87,7 +80,6 @@ jobs:
     if: startsWith(github.ref, 'refs/tags/')
     needs: build
     runs-on: ubuntu-latest
-
     steps:
       - name: Download artifacts
         uses: actions/download-artifact@v8
