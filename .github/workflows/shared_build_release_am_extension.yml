@@ -19,15 +19,17 @@ on:
         description: "The MetaMod Repository branch to compile the extension against"
         default: "1.12-dev"
         type: string
+      os-list:
+        description: 'JSON array of OSes to build on, e.g. ["ubuntu-22.04"]'
+        default: '["ubuntu-22.04", "windows-2022"]'
+        type: string
 
 jobs:
   build:
     strategy:
       fail-fast: false
       matrix:
-        os:
-          - ubuntu-22.04
-          - windows-2022
+        os: ${{ fromJSON(inputs.os-list) }}
         sm-branch:
           - master
           - 1.12-dev
