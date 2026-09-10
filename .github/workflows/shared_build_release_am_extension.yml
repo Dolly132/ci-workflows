@@ -44,7 +44,7 @@ jobs:
       - name: Set compiler
         shell: bash
         run: |
-          if [ "${{ matrix.os }}" = "windows-2022" ]; then
+          if [[ "${{ matrix.os }}" == windows-* ]]; then
             echo "CC=msvc" >> "$GITHUB_ENV"
             echo "CXX=msvc" >> "$GITHUB_ENV"
           else
