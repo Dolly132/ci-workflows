@@ -20,8 +20,8 @@ on:
         default: "1.12-dev"
         type: string
       os-list:
-        description: 'JSON array of OSes to build on, e.g. ["ubuntu-22.04"]'
-      default: '["ubuntu-24.04", "windows-2022"]'
+        description: 'JSON array of runner labels to build on (e.g. ["ubuntu-24.04", "windows-2022"])'
+        default: '["ubuntu-24.04", "windows-2022"]'
         type: string
 
 jobs:
@@ -41,17 +41,6 @@ jobs:
         with:
           submodules: ${{ inputs.submodules }}
 
-      - name: Set compiler
-        shell: bash
-        run: |
-          if [[ "${{ matrix.os }}" == windows-* ]]; then
-            echo "CC=msvc" >> "$GITHUB_ENV"
-            echo "CXX=msvc" >> "$GITHUB_ENV"
-          else
-            echo "CC=clang-14" >> "$GITHUB_ENV"
-            echo "CXX=clang++-14" >> "$GITHUB_ENV"
-          fi
-
       - name: Download artifact
         uses: actions/download-artifact@v8
         if: inputs.artifact-path != ''
@@ -63,8 +52,8 @@ jobs:
         id: ambuild
         with:
           os: ${{ matrix.os }}
-          cc: ${{ env.CC }}
-          cxx: ${{ env.CXX }}
+          cc: ${{ startsWith(matrix.os, 'windows') && 'msvc' || 'clang-14' }}
+          cxx: ${{ startsWith(matrix.os, 'windows') && 'msvc' || 'clang++-14' }}
           ambuild-ref: 'master'
           mm-ref: ${{ inputs.mm-branch }}
           sm-ref: ${{ matrix.sm-branch }}
