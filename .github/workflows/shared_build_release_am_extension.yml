@@ -21,7 +21,7 @@ on:
         type: string
       os-list:
         description: 'JSON array of OSes to build on, e.g. ["ubuntu-22.04"]'
-        default: '["ubuntu-22.04", "windows-2022"]'
+      default: '["ubuntu-24.04", "windows-2022"]'
         type: string
 
 jobs:
