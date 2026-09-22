@@ -48,7 +48,7 @@ jobs:
           path: ${{ inputs.artifact-path }}
 
       - name: Build extension
-        uses: srcdslab/action-ambuild@v1
+        uses: Dolly132/action-ambuild@sdk-fix
         id: ambuild
         with:
           os: ${{ matrix.os }}
